@@ -29,6 +29,7 @@ namespace FileOrganizer
         private object sync = new object();
         private AppState _appState = AppState.None;
         public const string AppName = "File Organizer";
+        private TaskManager _taskManager = null;
         private AppState State
         {
             get
@@ -48,8 +49,6 @@ namespace FileOrganizer
                 UpdateUIState();
             }
         }
-        public HashSet<string> FilesProcessed = new HashSet<string>();
-        public HashSet<string> FoldersCreated = new HashSet<string>();
         public AutoResetEvent start = new AutoResetEvent(false);
 
         public Form1()
@@ -96,16 +95,21 @@ namespace FileOrganizer
             {
                 AppState previous = State;
                 State = AppState.Start;
-                start.Set();
 
                 if (previous == AppState.None ||
                     previous == AppState.Stop ||
                     previous == AppState.ProcessDone ||
                     previous == AppState.RevertDone)
                 {
+                    //textBoxSrcFolder.Text = @"C:\temp\FileManager\in";
+                    //textBoxDestFolder.Text = @"C:\temp\FileManager\out";
                     ValidateInput(textBoxSrcFolder.Text, textBoxDestFolder.Text);
-
                     Task.Run(() => Process(textBoxSrcFolder.Text, textBoxDestFolder.Text));
+                }
+                else if (previous == AppState.Pause)
+                {
+                    UpdateStatus(labelStatus, $"Processing in progress...");
+                    _taskManager.ResumeWork();
                 }
             }
             catch (Exception exception)
@@ -116,7 +120,6 @@ namespace FileOrganizer
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
 
-                FinalizeProcessMsg();
                 State = AppState.ProcessDone;
             }
         }
@@ -124,13 +127,15 @@ namespace FileOrganizer
         private void PauseBtnClick(object sender, EventArgs e)
         {
             State = AppState.Pause;
-            start.Reset();
+            _taskManager.PauseWork();
+            UpdateStatus(labelStatus, $"Paused");
         }
 
         private void StopBtnClick(object sender, EventArgs e)
         {
             State = AppState.Stop;
-            start.Set();
+            _taskManager.StopWork();
+            UpdateStatus(labelStatus, $"Stopped");
         }
 
         private void RevertBtnClick(object sender, EventArgs e)
@@ -253,12 +258,6 @@ namespace FileOrganizer
             }
         }
 
-        private void UpdateListBox(string data)
-        {
-            listBoxStatus.Invoke((MethodInvoker)delegate {
-                listBoxStatus.Items.Add(data);
-            });
-        }
 
         private void UpdateButton(Button b, bool enable)
         {
@@ -296,12 +295,6 @@ namespace FileOrganizer
             }
         }
 
-        private void ClearProcessingContent()
-        {
-            FilesProcessed.Clear();
-            FoldersCreated.Clear();
-        }
-
         private void ClearListBox()
         {
             listBoxStatus.Invoke((MethodInvoker)delegate {
@@ -311,84 +304,27 @@ namespace FileOrganizer
 
         private void Process(string input, string output)
         {
-            ClearProcessingContent();
             ClearListBox();
-            InitializeProcessMsg();
+
+            UpdateStatus($"---------------------------------------------------------------------------------------------------");
+            UpdateStatus($"Processing starting...");
+            UpdateStatus($"---------------------------------------------------------------------------------------------------");
+            UpdateStatus(labelStatus, $"Processing in progress...");
 
             input = input.TrimEnd('\\');
             output = output.TrimEnd('\\');
+            _taskManager = new TaskManager();
+            int processed = _taskManager.StartWork(
+                10,
+                input,
+                output,
+                s => UpdateStatus(s));
 
-            DirectoryInfo info = new DirectoryInfo(input);
-            FileInfo[] newFiles = info.GetFiles("*.*", SearchOption.AllDirectories);
-            foreach (var newFile in newFiles)
-            {
-                if (State != AppState.Start)
-                {
-                    if (State == AppState.Pause)
-                    {
-                        start.WaitOne();
-
-                        if (State == AppState.Stop)
-                        {
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        if (State == AppState.Stop)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                UpdateListBox($"Processing: {newFile.FullName}");
-
-                // create the directory if not exist
-                string targetDir = FileOrganizerUtility.PrepareTargetDirFromFile(output, newFile);
-                if (!Directory.Exists(targetDir))
-                {
-                    DirectoryInfo inf = new DirectoryInfo(targetDir);
-                    while (!inf.Parent.Exists)
-                    {
-                        inf = inf.Parent;
-                    }
-                    UpdateListBox($"Creating directory: {targetDir}");
-                    Directory.CreateDirectory(targetDir);
-                    FoldersCreated.Add(inf.FullName);
-                }
-
-                string targetFilePath = FileOrganizerUtility.GetTargetFileName(newFile.FullName, targetDir);
-                if (File.Exists(targetFilePath))
-                {
-                    targetFilePath = FileOrganizerUtility.AddGuidToFileNameConflict(targetFilePath);
-                }
-
-                if (newFile.CopyTo(targetFilePath).Exists != true)
-                {
-                    throw new IOException($"Failed to copy file from '{newFile.FullName}' to '{targetFilePath}'");
-                }
-
-                FilesProcessed.Add(targetFilePath);
-                UpdateStatus(labelStatus, $"{FilesProcessed.Count} out of {newFiles.Length} processed...");
-            }
-
-            FinalizeProcessMsg();
+            UpdateStatus($"---------------------------------------------------------------------------------------------------");
+            UpdateStatus($"Processing complete. Total files processed: {processed}");
+            UpdateStatus($"---------------------------------------------------------------------------------------------------");
+            UpdateStatus(labelStatus, $"Processing complete. Total files processed: {processed}");
             State = AppState.ProcessDone;
-        }
-
-        private void FinalizeProcessMsg()
-        {
-            UpdateListBox($"---------------------------------------------------------------------------------------------------");
-            UpdateListBox($"Processing complete. Total files processed: {FilesProcessed.Count}");
-            UpdateListBox($"---------------------------------------------------------------------------------------------------");
-        }
-
-        private void InitializeProcessMsg()
-        {
-            UpdateListBox($"---------------------------------------------------------------------------------------------------");
-            UpdateListBox($"Processing starting...");
-            UpdateListBox($"---------------------------------------------------------------------------------------------------");
         }
 
         private void Revert()
@@ -397,79 +333,25 @@ namespace FileOrganizer
 
             ClearListBox();
 
-            InitializeRevertMsg();
+            UpdateStatus($"---------------------------------------------------------------------------------------------------");
+            UpdateStatus($"Revert process starting...");
+            UpdateStatus($"---------------------------------------------------------------------------------------------------");
+            UpdateStatus(labelStatus, $"Revert in progress...");
+            int reverted = _taskManager.RevertWork(
+                s => UpdateStatus(s));
 
-            uint count = 0;
-            foreach (var file in FilesProcessed)
-            {
-                if (State != AppState.Revert)
-                {
-                    if (State == AppState.Pause)
-                    {
-                        start.WaitOne();
-                        if (State == AppState.Stop)
-                        {
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        if (State == AppState.Stop)
-                        {
-                            break;
-                        }
-                    }
-                }
-                UpdateListBox($"Deleting file: {file}");
-                File.Delete(file);
-                UpdateStatus(labelStatus, $"{++count} out of {FilesProcessed.Count} processed...");
-            }
-
-            foreach (var folder in FoldersCreated)
-            {
-                if (State != AppState.Revert)
-                {
-                    if (State == AppState.Pause)
-                    {
-                        start.WaitOne();
-                        if (State == AppState.Stop)
-                        {
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        if (State == AppState.Stop)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                if (Directory.Exists(folder))
-                {
-                    UpdateListBox($"Deleting folder: {folder}");
-                    Directory.Delete(folder, true);
-                }
-            }
-
-            FinalizeRevertMsg();
-            ClearProcessingContent();
+            UpdateStatus($"---------------------------------------------------------------------------------------------------");
+            UpdateStatus($"Revert complete. Total files deleted: {reverted}");
+            UpdateStatus($"---------------------------------------------------------------------------------------------------");
+            UpdateStatus(labelStatus, $"Revert complete. Total files deleted: {reverted}");
             State = AppState.RevertDone;
         }
 
-        private void FinalizeRevertMsg()
+        private void UpdateStatus(string data)
         {
-            UpdateListBox($"---------------------------------------------------------------------------------------------------");
-            UpdateListBox($"Revert complete. Total files deleted: {FilesProcessed.Count}");
-            UpdateListBox($"---------------------------------------------------------------------------------------------------");
-        }
-
-        private void InitializeRevertMsg()
-        {
-            UpdateListBox($"---------------------------------------------------------------------------------------------------");
-            UpdateListBox($"Revert process starting...");
-            UpdateListBox($"---------------------------------------------------------------------------------------------------");
+            listBoxStatus.Invoke((MethodInvoker)delegate {
+                listBoxStatus.Items.Add(data);
+            });
         }
     }
 }

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.271
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileOrganizer", "FileOrganizer\FileOrganizer.csproj", "{1610D6A3-D375-436B-978D-00E14D830F50}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileOrganizer", "FileOrganizer.csproj", "{1610D6A3-D375-436B-978D-00E14D830F50}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileOrganizerTests", "FileOrganizerTests\FileOrganizerTests.csproj", "{FB6DA0E3-F9FA-42DD-A1DD-63A8F3378CB6}"
 EndProject
@@ -26,6 +26,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {3647148C-41A7-4045-80C5-D5FB946C39A9}
+		SolutionGuid = {339D5002-120E-417A-8817-B1DB2AD79C62}
 	EndGlobalSection
 EndGlobal

@@ -37,13 +37,13 @@
             this.textBoxDestFolder = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.listBoxStatus = new System.Windows.Forms.ListBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.labelStatus = new System.Windows.Forms.Label();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.buttonRevert = new System.Windows.Forms.Button();
             this.buttonStop = new System.Windows.Forms.Button();
             this.buttonPause = new System.Windows.Forms.Button();
             this.buttonStart = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
+            this.labelStatus = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -113,26 +113,6 @@
             this.listBoxStatus.Size = new System.Drawing.Size(706, 290);
             this.listBoxStatus.TabIndex = 6;
             // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.142858F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(27, 440);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(47, 13);
-            this.label3.TabIndex = 11;
-            this.label3.Text = "Status:";
-            // 
-            // labelStatus
-            // 
-            this.labelStatus.AutoSize = true;
-            this.labelStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.142858F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelStatus.Location = new System.Drawing.Point(67, 440);
-            this.labelStatus.Name = "labelStatus";
-            this.labelStatus.Size = new System.Drawing.Size(104, 13);
-            this.labelStatus.TabIndex = 12;
-            this.labelStatus.Text = "0 out of 0 processed";
-            // 
             // buttonRevert
             // 
             this.buttonRevert.BackgroundImage = global::FileOrganizer.Properties.Resources.revert;
@@ -178,6 +158,25 @@
             this.buttonStart.UseVisualStyleBackColor = false;
             this.buttonStart.Click += new System.EventHandler(this.StartBtnClick);
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.142858F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Location = new System.Drawing.Point(27, 440);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(47, 13);
+            this.label3.TabIndex = 11;
+            this.label3.Text = "Status:";
+            // 
+            // labelStatus
+            // 
+            this.labelStatus.AutoSize = true;
+            this.labelStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.142858F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelStatus.Location = new System.Drawing.Point(67, 440);
+            this.labelStatus.Name = "labelStatus";
+            this.labelStatus.Size = new System.Drawing.Size(0, 13);
+            this.labelStatus.TabIndex = 12;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -222,9 +221,9 @@
         private System.Windows.Forms.Button buttonPause;
         private System.Windows.Forms.Button buttonStop;
         private System.Windows.Forms.Button buttonRevert;
+        private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label labelStatus;
-        private System.Windows.Forms.ToolTip toolTip1;
     }
 }
 
